@@ -1,8 +1,10 @@
 import falcon
 import json
+import redis
 
 from rethink_client import *
 from postgres_client import *
+from utils import *
 
 class NoteResource:
 
@@ -53,7 +55,7 @@ class EventResource:
         else:
             try:
                 pgdb.execute("SELECT * FROM test;")
-                result = [dict((pgdb.description[i][0], value) for i, value in enumerate(row)) for row in pgdb.fetchall()]
+                result = Objectify(pgdb)
                 resp.body = json.dumps(result[0] if result else None)
                 pgdb.connection.close()
             except Exception as e:
