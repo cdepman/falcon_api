@@ -2,14 +2,15 @@ import os
 import psycopg2
 
 conn = psycopg2.connect("dbname=eventdb user=charlie")
+pgdb = conn.cursor()
 
 def dbSetup():
     try:
-        pgdb = conn.cursor()
         pgdb.execute("CREATE TABLE test (id serial PRIMARY KEY, num integer, data varchar);")
         pgdb.execute("INSERT INTO test (num, data) VALUES (%s, %s)", (100, "abc'def"))
         try:
             conn.commit()
+            conn.close()
             print 'Successfully wrote to db.'
         except Exception as e:
             print "Couldn't commit:"

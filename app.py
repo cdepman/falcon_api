@@ -34,10 +34,37 @@ class DefaultResource:
 
 class EventResource:
 
+    conn = psycopg2.connect("dbname=eventdb user=charlie")
+    pgdb = conn.cursor()
+
     def on_get(self, req, resp):
-        if req.get_param('id'):
-            result =
+        id = req.get_param('id')
+        if id:
+            try:
+                pgdb.execute("SELECT * FROM test WHERE id = %s;", (id))
+                if True:
+                    for record in pgdb:
+                        print record
+                else:
+                    print "not found"
+            except Exception as e:
+                print "D'oh:"
+                print e.message
+        else:
+            try:
+                pgdb.execute("SELECT * FROM test;")
+                result = [dict((pgdb.description[i][0], value) for i, value in enumerate(row)) for row in pgdb.fetchall()]
+                resp.body = json.dumps(result[0] if result else None)
+                pgdb.connection.close()
+            except Exception as e:
+                conn.rollback()
+                print "Derp:"
+                print e.message
+                resp.body = json.dumps({'Thanks!': 'For attempting to get some test enties!'})
+
+            # result2 = pgdb.fetchone()(1, 100, "abc'def")
 
 api = falcon.API()
 api.add_route('/notes', NoteResource())
+api.add_route('/events', EventResource())
 api.add_route('/', DefaultResource())
