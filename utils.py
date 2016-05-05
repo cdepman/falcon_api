@@ -1,3 +1,8 @@
-def objectify(cursor):
-    return [dict((cursor.description[i][0], value) for i, value in enumerate(row)) for row in cursor.fetchall()]
-Objectify = objectify
+def cursor_to_arr(cursor):
+    arr = []
+    for row in cursor.fetchall():
+        obj = {}
+        for i, value in enumerate(row):
+            obj[cursor.description[i][0]] = value
+        arr.append(obj)
+    return arr

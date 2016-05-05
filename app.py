@@ -1,10 +1,10 @@
 import falcon
 import json
 import redis
+import utils
 
+from postgres import *
 from rethink_client import *
-from postgres_client import *
-from utils import *
 
 class NoteResource:
 
@@ -36,17 +36,15 @@ class DefaultResource:
 
 class EventResource:
 
-    conn = psycopg2.connect("dbname=eventdb user=charlie")
-    pgdb = conn.cursor()
-
     def on_get(self, req, resp):
+
         id = req.get_param('id')
         if id:
             try:
-                pgdb.execute("SELECT * FROM test WHERE id = %s;", (id))
+                cursor.execute("SELECT * FROM test WHERE id = %s;", (id))
                 if True:
-                    for record in pgdb:
-                        print record
+                    for record in cursor:
+                        resp.body = json.dumps(record)
                 else:
                     print "not found"
             except Exception as e:
@@ -54,17 +52,16 @@ class EventResource:
                 print e.message
         else:
             try:
-                pgdb.execute("SELECT * FROM test;")
-                result = Objectify(pgdb)
-                resp.body = json.dumps(result[0] if result else None)
-                pgdb.connection.close()
+                cursor.execute("SELECT * FROM test;")
+                result = utils.cursor_to_arr(cursor)
+                resp.body = json.dumps(result if result else None)
             except Exception as e:
-                conn.rollback()
                 print "Derp:"
                 print e.message
+                conn.rollback()
                 resp.body = json.dumps({'Thanks!': 'For attempting to get some test enties!'})
 
-            # result2 = pgdb.fetchone()(1, 100, "abc'def")
+            # result2 = cursor.fetchone()(1, 100, "abc'def")
 
 api = falcon.API()
 api.add_route('/notes', NoteResource())
