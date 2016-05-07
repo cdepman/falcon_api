@@ -32,7 +32,10 @@ class NoteResource:
 class DefaultResource:
 
     def on_get(self, req, resp):
-        resp.body = json.dumps({'hello': 'world'})
+        resp.status = falcon.HTTP_200
+        resp.content_type = 'text/html'
+        with open('index.html', 'r') as f:
+            resp.body = f.read()
 
 class EventResource:
 
@@ -60,8 +63,6 @@ class EventResource:
                 print e.message
                 conn.rollback()
                 resp.body = json.dumps({'Thanks!': 'For attempting to get some test enties!'})
-
-            # result2 = cursor.fetchone()(1, 100, "abc'def")
 
 api = falcon.API()
 api.add_route('/notes', NoteResource())
