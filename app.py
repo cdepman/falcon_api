@@ -2,9 +2,11 @@ import falcon
 import json
 import redis
 import utils
+from bson.json_util import dumps
 
 from postgres import *
 from rethink_client import *
+from mongo_client import *
 
 class NoteResource:
 
@@ -64,7 +66,20 @@ class EventResource:
                 conn.rollback()
                 resp.body = json.dumps({'Thanks!': 'For attempting to get some test enties!'})
 
+class EventMongoResource:
+    def on_get(self, req, resp):
+        try:
+            events_collection = mdb['events']
+            cursor = events_collection.find()
+            resp.body = dumps(cursor)
+        except Exception as e:
+            print "Derp:"
+            print e.message
+            conn.rollback()
+            resp.body = json.dumps({'Thanks!': 'For attempting to get some test enties!'})
+
 api = falcon.API()
 api.add_route('/notes', NoteResource())
 api.add_route('/events', EventResource())
+api.add_route('/events2', EventMongoResource())
 api.add_route('/', DefaultResource())
